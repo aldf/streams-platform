@@ -29,6 +29,27 @@ class Kernel extends \Illuminate\Foundation\Http\Kernel
     ];
 
     /**
+     * The application's route middleware groups.
+     *
+     * @var array
+     */
+    protected $middlewareGroups = [
+        'web' => [
+            \App\Http\Middleware\EncryptCookies::class,
+            \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
+            \Illuminate\Session\Middleware\StartSession::class,
+            \Illuminate\View\Middleware\ShareErrorsFromSession::class,
+            \App\Http\Middleware\VerifyCsrfToken::class,
+            \Illuminate\Routing\Middleware\SubstituteBindings::class,
+        ],
+
+        'api' => [
+            'throttle:60,1',
+            'bindings',
+        ],
+    ];
+
+    /**
      * Create a new Kernel instance.
      *
      * @param Application $app
@@ -37,6 +58,13 @@ class Kernel extends \Illuminate\Foundation\Http\Kernel
     public function __construct(Application $app, Router $router)
     {
         $this->defineLocale();
+
+        $config = require base_path('config/streams.php');
+
+        $this->middleware         = array_get($config, 'middleware') ?: $this->middleware;
+        $this->routeMiddleware    = array_get($config, 'route_middleware') ?: $this->routeMiddleware;
+        $this->middlewareGroups   = array_get($config, 'middleware_groups') ?: $this->middlewareGroups;
+        $this->middlewarePriority = array_get($config, 'middleware_priority') ?: $this->middlewarePriority;
 
         parent::__construct($app, $router);
     }
